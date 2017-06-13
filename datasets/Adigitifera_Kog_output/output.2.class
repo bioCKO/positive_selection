@@ -1,0 +1,27 @@
+#KOG class	count	description
+A	810	RNA processing and modification 
+B	411	Chromatin structure and dynamics 
+C	369	Energy production and conversion 
+D	652	Cell cycle control, cell division, chromosome partitioning 
+E	776	Amino acid transport and metabolism 
+F	211	Nucleotide transport and metabolism 
+G	599	Carbohydrate transport and metabolism 
+H	234	Coenzyme transport and metabolism 
+I	920	Lipid transport and metabolism 
+J	593	Translation, ribosomal structure and biogenesis 
+K	1735	Transcription 
+L	771	Replication, recombination and repair 
+M	1044	Cell wall/membrane/envelope biogenesis 
+N	54	Cell motility 
+O	2114	Posttranslational modification, protein turnover, chaperones 
+P	879	Inorganic ion transport and metabolism 
+Q	397	Secondary metabolites biosynthesis, transport and catabolism 
+R	3108	General function prediction only 
+S	1558	Function unknown 
+T	7559	Signal transduction mechanisms 
+U	1216	Intracellular trafficking, secretion, and vesicular transport 
+V	99	Defense mechanisms 
+W	919	Extracellular structures 
+X	2	multiple functions
+Y	150	Nuclear structure 
+Z	1444	Cytoskeleton 
