@@ -1,0 +1,212 @@
+#Walkthrough for installing and running fastOrtho, a reimplementation of orthoMCL, on TACC
+#FastOrtho is available through PATRIC: Pathosystems Resource Integration Center (Wattam et al. 2014)
+#last updated 1/31/17
+#Groves Dixon
+
+####################################
+########### INSTALLATION ###########
+####################################
+#instructions for installing fastOrtho and its dependencies
+
+#we already have blast
+module load blast
+which blastp
+
+### INSTALL MCL
+#go to work and create a directory to keep mcl in
+#if you want to put is somewhere else change downstream --prefix argument appropriately
+cdw
+mkdir mcl
+cd mcl
+
+#download it from here: http://www.micans.org/mcl/index.html?sec_software
+wget http://www.micans.org/mcl/src/mcl-05-090.tar.gz
+
+#unzip
+tar -zxvf mcl-05-090.tar.gz
+cd mcl-05-090/
+
+#configure the installation and install
+./configure --prefix=$WORK/mcl
+make
+make install
+
+#the mcl executables are now installed here: $WORK/mcl/bin
+
+
+### INSTALL FASTORTHO
+#go to where you want to keep fastOrtho
+cdw
+
+#download FastOrtho from here: http://enews.patricbrc.org/fastortho/
+wget http://brcdownloads.patricbrc.org/patric2/software/FastOrtho/FastOrtho.zip
+
+#unzip
+unzip FastOrtho.zip
+
+#change to the src directory
+cd FastOrtho
+cd src
+
+#here you are supposed to just type 'make'
+#but then when I tried this the program always returned segmentation falts
+#the following change to the Makefile fixed the problem for me
+
+sed -i.bak 's/-enable-auto-import/--enable-auto-import/' Makefile
+
+#now type make
+make
+
+#test that it's working
+./FastOrtho
+
+#should return this error:
+		No working directory setting
+		Missing prefix for temporary files
+		Invalid options
+
+
+##############################################
+########## SET UP PROTEIN SEQUENCES ##########
+##############################################
+#to run FastOrtho we need protein sequences
+#if you are starting with only transcriptomes
+#protein sequences can be extracted using CDS_extractor_v2.pl
+#available here: https://github.com/z0on/annotatingTranscriptomes
+#if you already have protein files
+#stored somewhere you can skip this section.
+
+#navigate to where you have the protein fastas saved
+#look at the headers of the protein fastas
+for file in $(ls *PRO.fas); do echo -e "\n\n\n$file:"; head $file; done
+
+#the sequence definitions have multiple chunks of info in them
+#for matching things up later it will be easier if each sequence has
+#just one identifying string. So clean up the sequence definitions with clean_seq_definitions.py
+#use clean_seq_definitions.py -h for help
+for file in $(ls *PRO.fas); do clean_seq_definitions.py -i $file -pos 1 -o ${file/_PRO.fas/}.faa; done
+
+
+#double check that everything looks right
+for file in $(ls *.faa); do echo -e "\n\n\n$file:"; head $file; done
+
+
+####################################
+########## SPLIT BLASTING ##########
+####################################
+#the blasting takes a long time, so need to do it in pieces for paralellization
+#first use FastOrtho to build a compiled file for blasting:
+module load blast                                               #load module for blast
+export BLASTP=$(which blastp)                                   #path to blastp
+export MAKEBLASTDB=$(which makeblastdb)                         #path to makeblastdb
+export MCL="$WORK/mcl/bin/mcl"                                  #path to MCL executable
+export FASTORTHO="$WORK/FastOrtho/src/FastOrtho"                #path to FastOrtho executable
+export FAAS="$WORK/anthozoan_transcriptomes/PRO_files_1-23-17"  #path to where your .faa files are stored (don't include final /)
+export EVALUE="1e-10"                                           #the evalue cutoff you want to use
+export NAME="run1"                                              #name for this FastOrtho run
+export OPTIONS="option_file.txt"                                #desired name for options file
+
+build_options.sh $NAME $OPTIONS
+
+#run FastOrtho
+echo "$FASTORTHO --option_file $OPTIONS" > runFastOrtho
+launcher_creator.py -n runFastOrtho -j runFastOrtho -q normal -t 1:00:00 -a $allo -e $email
+sbatch runFastOrtho.slurm
+
+#this will not complete, but it will build a file called run1.faa that you 
+#can use to build your own blast file using instructions below
+#------------------------------------------------------------------------------------------
+
+
+#This step is only necessary if you have a lot of species
+#and the blast part of FastOrtho cannot complete quickly enough
+#build a concatenation of all fasta files by running the steps below under 'RUN FASTORTHO'
+#building the contanation file happens fast, then you can feed that into the split blasting steps below
+#then split it using split_fasta.py and blast it against itself:
+
+echo "split_fasta.py -i run1.faa -n 6" > doSplits
+launcher_creator.py -n doSplits -j doSplits -t 1:00:00 -q normal -a $allo -e $emai
+sbatch doSplits.slurm
+
+
+#build a blast database from the concatenated fasta
+#blast all the split fastas against it
+
+> doBlast;for file in $(ls *split*.fasta); do 
+echo "blastp -db run1.faa -query $file -evalue 1e-10 -num_threads 48 -num_descriptions 100 -num_alignments 100 -outfmt 6 -out $file.out" >> doBlast
+done
+
+#launch the job with the number of nodes equal to the -n when you split. Let blast do the threading at 48 (-num_threads 48 above)
+launcher_creator.py -n doBlast -j doBlast -q normal -t 24:00:00 -a $allo -e $email -N 6 -w 1
+sbatch doBlast.slurm
+
+#took ~9.5 hours to run
+
+#now concatenate all the blast results into a single file
+#check that you are listing them in correct order
+ls run1_split*out | sort -k 1.11 -n
+>compiled_blast_output.out; for file in $(ls run1_split*out | sort -k 1.11 -n); do cat $file >> compiled_blast_output.out; done
+
+
+
+
+###################################
+########## RUN FASTORTHO ##########
+###################################
+#once you have the compiled blast output you can run fastortho for real
+
+### PREPARE OPTIONS FILE
+#fastOrtho can take a lot of options, so its
+#easiest to set this up and feed it into the command
+#you can make a working options file in two ways,
+#you can edit the template options file manually and use that
+#or set the necessary variables in bash then build one with build_options.sh
+
+
+### BUILDING OPTIONS FILE WITH build_options.sh
+#make a working directory for this run and change to it
+mkdir run1
+cd run1
+
+#set up the variables needed to build an options file
+module load blast                                               #load module for blast
+export BLASTP=$(which blastp)                                   #path to blastp
+export MAKEBLASTDB=$(which makeblastdb)                         #path to makeblastdb
+export MCL="$WORK/mcl/bin/mcl"                                  #path to MCL executable
+export FASTORTHO="$WORK/FastOrtho/src/FastOrtho"                #path to FastOrtho executable
+export FAAS="$WORK/anthozoan_transcriptomes/PRO_files_1-23-17"  #path to where your .faa files are stored (don't include final /)
+export EVALUE="1e-10"                                           #the evalue cutoff you want to use
+export NAME="run1"                                              #name for this FastOrtho run
+export OPTIONS="option_file.txt"                                #desired name for options file
+
+
+#build options file
+build_options.sh $NAME $OPTIONS
+
+#add the tag for an already available blast results file
+echo "--blast_file $(pwd)/compiled_blast_output.out" >> option_file.txt
+
+#run FastOrtho
+echo "$FASTORTHO --option_file $OPTIONS" > runFastOrtho
+launcher_creator.py -n runFastOrtho -j runFastOrtho -q normal -t 48:00:00 -a $allo -e $email
+sbatch runFastOrtho.slurm
+
+#Runs in 12 minutes
+#final output for this example will be run1.end
+
+
+#CHECK THESE NEW ORTHOS AGAINST THE OLD ONES WITH cross_check_orthos.py
+#(return to Positive_Selection_walkthrough.txt to continue)
+
+
+
+
+
+#REFERENCES:
+Wattam, A.R., D. Abraham, O. Dalay, T.L. Disz, T. Driscoll, J.L. Gabbard, J.J. Gillespie, 
+R. Gough, D. Hix, R. Kenyon, D. Machi, C. Mao, E.K. Nordberg, R. Olson, R. Overbeek, 
+G.D. Pusch, M. Shukla, J. Schulman, R.L. Stevens, D.E. Sullivan, V. Vonstein, A. Warren, 
+R. Will, M.J.C. Wilson, H. Seung Yoo, C. Zhang, Y. Zhang, B.W. Sobral (2014). 
+“PATRIC, the bacterial bioinformatics database and analysis resource.” 
+Nucl Acids Res 42 (D1): D581-D591.  doi:10.1093/nar/gkt1099.  PMID: 24225323.
+

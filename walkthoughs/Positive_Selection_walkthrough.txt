@@ -1,0 +1,759 @@
+#WALKTHROUGH FOR DOING POSITIVE SELECTION ANALYSES ON CORAL TRANSCRIPTOMES
+#VERY SIMILAR TO THE METATRANSCRIPTOMES WALKTHROUGH BUT WRITTEN AFTER
+##Groves Dixon
+#written 2/24/15
+#last updated 9/19/16
+
+#Set Variables for running jobs on TACC:
+#Probably good to add these to your .bash_profile
+allo="YOUR_ALLOCATION"
+email="YOUR_EMAIL"
+
+
+
+#--------------------------------------------------------------------------
+#------------- STEP 1 DOWNLOAD AND PREP THE TRANSCRIPTOMES ----------------
+#--------------------------------------------------------------------------
+#(THESE LINKS ARE MORE FOR CONVENIENCE AND ARE NOT GUARANTEED TO WORK)
+#TThey were last checked 1-12-17
+
+#AIPTASIA FROM THE PRINGLE LAB
+wget http://pringlelab.stanford.edu/project%20files/AposymbioticAiptasiaTranscriptomeGoodLoci.fa.gz
+
+#A.CERVICORNIS WAS OBTAINED FROM NCBI (accession number PRJNA222758)
+#Note with this one I had to remove empty sequence definitions
+capitalize_fasta.py -fa Acervicornis_from_ncbi.fasta > Acervicorn_fixed.fa
+
+#TRANSCRIPTOMES AVAILABLE FROM MEYER LAB WEBSITE (http://people.oregonstate.edu/~meyere/data.html)
+wget "http://meyerlab:coral@files.cgrb.oregonstate.edu/Meyer_Lab/transcriptomes/MaurN/Maur_transcriptome_v1.fasta.gz" #Madracis auretenra
+wget "http://meyerlab:coral@files.cgrb.oregonstate.edu/Meyer_Lab/transcriptomes/DstrN/Pstr_transcriptome_v1.fasta.gz" #Pseudodiploria strigosa
+wget "http://meyerlab:coral@files.cgrb.oregonstate.edu/Meyer_Lab/transcriptomes/Fscu/Fscu_transcriptome_v1.fasta.gz" #Fungia scutaria
+wget "http://meyerlab:coral@files.cgrb.oregonstate.edu/Meyer_Lab/transcriptomes/Shys/Shys_transcriptome_v1.fasta.gz" #Seriatopora hystrix
+wget "http://meyerlab:coral@files.cgrb.oregonstate.edu/Meyer_Lab/transcriptomes/Mcav/Mcav_transcriptome_v1.fasta.gz" #Montastaea cavernosa
+wget "http://meyerlab:coral@files.cgrb.oregonstate.edu/Meyer_Lab/transcriptomes/Aele/Aele_transcriptome_v1.fasta.gz" #Anthopleura elegantissima
+wget "http://meyerlab:coral@files.cgrb.oregonstate.edu/Meyer_Lab/transcriptomes/Pdae/Pdae_v1.fasta.gz"               #Platygyra daedalea
+
+#TRANSCRIPTOMES FROM MATZ LAB WEBSITE
+wget "http://www.bio.utexas.edu/research/matz_lab/matzlab/Data_files/amil_july2014.zip" #Acropora millepora (by Moya)
+wget "http://www.bio.utexas.edu/research/matz_lab/matzlab/Data_files/pastreoides_may2014.zip" #Porites asteoides
+wget "http://www.bio.utexas.edu/research/matz_lab/matzlab/Data_files/aten_july2014.zip" #Acropora tenuis
+
+#AVAILABLE FROM OIST MARINE GENOMICS UNIT (these have been revised since I downloaded them)
+wget "http://marinegenomics.oist.jp/coral/download/adi_transcriptome_assembly.v1.fa.gz" #Acropora digitifera transcriptome 
+
+#FROM ANDERSON ET AL. 2016 RNA-Seq of the Caribbean reef-building coral Orbicella faveolata (Scleractinia-Merulinidae) under bleaching and disease stress expands models of coral innate immunity
+wget https://dfzljdn9uc3pi.cloudfront.net/2016/1616/1/SI_4a_coral_assembly.fasta.zip  #Orbicella faveolata
+
+#FROM PALUMBI LAB WEBSITE 'Genomic basis for coral resilience to climate change'
+wget http://palumbi.stanford.edu/data/33496_Ahyacinthus_CoralContigs.fasta.zip
+
+#Cnidarian Database
+wget "http://data.centrescientifique.mc/Data/454Isotigs.fas.zip" #Stylophora pistillata (Karako-Lampert et al. Plos One 2014)
+
+#PocilloporaBase
+wget "http://cnidarians.bu.edu/PocilloporaBase/cgi-bin/blast/contigs.fan" #Pocillopora damicornis
+
+#BAUMS LAB
+#this one has some different formatting, so do some followup adjustments
+wget "https://usegalaxy.org/datasets/cb51c4a06d7ae94e/display?to_ext=fasta" #Acropora palmata (Polato et al. 2011)
+sed -i.bak 's/"//g' Apalmata.fasta ##get rid of some quotation marks that are in there for some random reason
+
+
+#PcarnBase
+wget "http://www.comp.hkbu.edu.hk/~db/PcarnBase/db/nucleotide/CoralDNA" #Platygyra carnosus (Sun et al 2013)
+
+#From Sarah Davies
+wget ftp://marchanon:anon@rc-ns-ftp.its.unc.edu/Siderastrea_siderea_transcriptome.zip #Siderastrea siderea (Davies et al. 2016)
+
+#From Kenkel lab
+http://dornsife.usc.edu/labs/carlslab/data/
+
+
+#BUILD JOINT CNIDARIAN DATABASE FROM  N.vectensis and A.digitifera PROTEOMES
+wget ftp://ftp.jgi-psf.org/pub/JGI_data/Nematostella_vectensis/v1.0/annotation/transcripts.Nemve1FilteredModels1.fasta.gz #Nematostella transcriptome
+wget ftp://ftp.jgi-psf.org/pub/JGI_data/Nematostella_vectensis/v1.0/annotation/proteins.Nemve1FilteredModels1.fasta.gz    #Nematostella proteome
+wget http://marinegenomics.oist.jp/coral/download/adi_transcriptome_assembly.v1.fa.gz                                     #Acropora difitifera transcriptome
+wget http://marinegenomics.oist.jp/coral/download/adi_aug101220_pasa_prot.fa.gz                                           #Acropora digitifera proteome
+cat adi_v1.0.1.prot.fa transcripts.Nemve1FilteredModels1.fasta > cnidarianProteinDB.fasta
+
+#INDEX THE COMBINED DATABASE FOR BLASTING
+module load blast
+echo "makeblastdb -in cnidarianProteinDB.fasta -dbtype prot" > mdb
+echo "makeblastdb -in Adigitifera_prot.fa -dbtype prot" >> mdb
+launcher_creator.py -j mdb -n mdb -a $allo -t 1:00:00
+sbatch mdb.slurm
+
+#ADD PATH TO THIS FILE TO YOUR .bashrc or .bash_profile FOR EASY ACCESS
+export CNIDARIANDB="/work/02260/grovesd/Nvectensis_references/cnidarianProteinDB.fasta"
+
+#ONCE ALL THE TRANSCRIPTOMES ARE DOWNLOADED, CHANGE THEIR NAMES TO MAKE THEM CONSISTENT
+#BECAUSE WE'LL BE USING RAXML AND PAML, ITS EASIEST TO USE JUST THE FIRST 10 LETTERS FOR EACH SPECIES IDENTIFER FROM THE BEGINNING
+#YOUR FINAL FILES SHOULD BE NAMED LIKE THIS
+Acervicorn.fa
+Adigitifer.fa
+Aelegantis.fa
+Ahyacinthu.fa
+Amillepora.fa
+Apallida.fa
+Apalmata.fa
+Atenuis.fa
+Fscutaria.fa
+Mauretenra.fa
+Mcavernosa.fa
+Ofaveolata.fa
+Nvectensis.fa
+Pastreoide.fa
+Paustralie.fa
+Pcarnosus.fa
+Pdaedalea.fa
+Pdamicorni.fa
+Plobata.fa
+Pstrigosa.fa
+Shystrix.fa
+Spistillat.fa
+Ssiderea.fa
+
+#GET SOME SUMMARY DATA ABOUT EACH TRANSCRIPTOME USING SEQ_STATS.PL by Eli Meyer
+>runStats;>seqStats.txt; >runStats; for file in *.fa; do echo "seq_stats.pl $file >> seqStats.txt" >> runStats; done
+launcher_creator.py  -n runStats -j runStats -q normal -t 2:00:00 -N 1 -w 48 -a tagmap
+sbatch runStats.slurm
+
+###################### CLEANING DEFINITION LINES ######################
+
+#DOWNSTREAM IT WILL BE EASIER IF EACH CONTIG IS DEFINED ONLY WITH A SINGLE IDENTIFYING STRING
+#CLEAN UP THE SEQUENCE DEFINITIONS USING CLEAN_SEQ_DEFINITIONS.PY
+#Acervicorn.fa
+clean_seq_definitions.py -i Acervicorn.fa -o Acervicorn_clean.fa -pos 1
+#Adigitifera - already good
+cp Adigitifer.fa Adigitifer_clean.fa
+#Aelegantisima
+clean_seq_definitions.py -i Aelegantis.fa -o Aelegantis_clean.fa -pos 1
+#Ahyacinthus - already good
+cp Ahyacinthu.fa Ahyacinthu_clean.fa 
+#Amillepora
+clean_seq_definitions.py -i Amillepora.fa -o Amillepora_clean.fa -pos 1
+#Apallida
+cp Apallida.fa Apallida_clean.fa
+#Apalmata - already good
+cp Apalmata.fa Apalmata_clean.fa
+#Atenuis
+clean_seq_definitions.py -i Atenuis.fa -o Atenuis_clean.fa -pos 1
+#Fscutaria
+clean_seq_definitions.py -i Fscutaria.fa -o Fscutaria_clean.fa -pos 1
+#Mauretenra
+clean_seq_definitions.py -i Mauretenra.fa -o Mauretenra_clean.fa -pos 1
+#Mcavernosa
+clean_seq_definitions.py -i Mcavernosa.fa -o Mcavernosa_clean.fa -pos 1
+#Ofaveolata
+clean_seq_definitions.py -i Ofaveolata.fa -o Ofaveolata_clean.fa -pos 1
+#Nvectensis - already good
+cp Nvectensis.fa Nvectensis_clean.fa
+#Pastreoides
+clean_seq_definitions.py -i Pastreoide.fa -o Pastreoide_clean.fa -pos 1
+#Paustraliensis
+clean_seq_definitions.py -i Paustralie.fa -o Paustralie_clean.fa -pos 1
+#Pcarnosus -already good
+cp Pcarnosus.fa Pcarnosus_clean.fa
+#Pdaedalea
+clean_seq_definitions.py -i Pdaedalea.fa -o Pdaedalea_clean.fa -pos 1
+#Pdamicornis - already good
+cp Pdamicorni.fa Pdamicorni_clean.fa
+#Plobata
+clean_seq_definitions.py -i Plobata.fa -o Plobata_clean.fa -pos 1
+#Pstrigosa
+clean_seq_definitions.py -i Pstrigosa.fa -o Pstrigosa_clean.fa -pos 1
+#Shystrix
+clean_seq_definitions.py -i Shystrix.fa -o Shystrix_clean.fa -pos 1
+#Spistillata
+clean_seq_definitions.py -i Spistillat.fa -o Spistillat_clean.fa -pos 1
+#Ssiderea
+clean_seq_definitions.py -i Ssiderea.fa -o Ssiderea_clean.fa -pos 1
+
+#clean the Adigitifera reference proteins as well
+wget ftp://ftp.ncbi.nih.gov/genomes/Acropora_digitifera/protein/protein.fa.gz
+gunzip protein.fa.gz
+clean_seq_definitions.py -i protein.fa -output AdigRef_clean.fa -delimit '|' -pos 4
+
+ls *clean.fa | wc -l
+		#24
+
+##################################################################
+
+#NOW MOVE THE ORIGINALS INTO ANOTHER DIRECTORY AND SWITCH THE NAMES OF THE CLEAN FILES BACK
+rename _clean.fa .fa *.fa
+
+#NOW ALL THE TRANSCRIPTOMES HAVE SINGLE IDENTIFYING SEQUENCE IDENTIFIERS
+#MOVE THEM INTO THEIR OWN DIRECTORY BEFORE CONTINUING SO THEY ARE YOUR ONLY .fa FILES
+
+#--------------------------------------------------------------------------------------
+#------- STEP 2 EXTRACT PROTEIN AND CODING SEQUENCES BASED ON REFERENCE PROTEOMES -----
+#--------------------------------------------------------------------------------------
+
+#HERE YOU WILL USE THE "CNIDARIAN DATABASE" ASSEMBLED ABOVE.
+
+#BLAST EACH INDIVIDUAL TRANSCRIPTOME AGAINST THE COMBINED (DIGITIFERA + NEMATOSTELLA) PROTEIN DATABASE
+
+#LOAD THE BLAST MODULE
+module load blast
+
+#CHOOSE THE DATABASE YOU WANT TO EXTACT PROTEINS FROM
+#I noticed that using the Nvectensis-Adigitifera concatenation resulted in no orthologs from N.vectensis
+#Trying just Adigitifera
+BDB="/work/02260/grovesd/lonestar/anthozoan_transcriptomes/protein_databases/Adigitifera_prot.fa"
+
+
+#MAKE AN EMPTY COMMANDS FILE
+>doblast
+for file in *.fa; do echo blastx -query $file -db $BDB -evalue 1e-5 -num_descriptions 5 -num_alignments 5 -out ${file/.fa/}.br >> doblast; done
+launcher_creator.py -j doblast -n doblast -l doblast.job -a tagmap -q normal -t 8:00:00 -a tagmap -e grovesdixon@gmail.com -N 1 -w 48
+sbatch doblast.job
+
+#RUN CDS EXTRACTOR ON THE BLAST OUTPUTS *(note this doesn't seem to like overwriting files, so you may need to remove old output files first if running multiple times)
+#CDS_extractor_v2.pl BY MIKHAIL MATZ USES BIOPERL TO EXTRACT CODING NUCLEOTIDE SEQUENCES AND PROTEIN SEQUENCES FROM TRANSCRIPTOMES BASED ON HITS TO A REFERENCE PROTEOME.
+
+module load bioperl
+>extract; for file in *.fa; do echo "CDS_extractor_v2.pl $file ${file/.fa/}.br allhits bridgegaps" >> extract ; done
+launcher_creator.py -j extract -n extract -t 5:00:00 -N 2 -a $allo -e $email
+sbatch extract.slurm
+
+#CHECK IF YOU GOT BACK CDS FILES FOR ALL SPECIES
+ls *CDS.fas | wc -l
+
+#--------------------------------------------------------------------------------------
+#-------------------- STEP 2 GETTING ORTHOLOGS FOR PHYLOGENY --------------------------
+#--------------------------------------------------------------------------------------
+#BLAST ALL THE EXTRACTED PROTEIN SEQUENCES AGAINST ONE ANOTHER
+
+#MAKE A BLAST DATABASE FOR EACH SPECIES
+module load blast
+> makeDBs; for file in *PRO.fas; do  echo makeblastdb -in $file -dbtype prot >> makeDBs; done
+launcher_creator.py -j makeDBs -n makeDBs -e $email -a $allo -N 1 -w 24 -q normal -t 1:00:00
+sbatch makeDBs.slurm
+
+
+#NOW BLAST ALL AGAINST ALL
+paired_blasts_launcher.py *PRO.fas > doblasts
+launcher_creator.py -n doblasts -j doblasts -q normal -t 24:00:00 -N 5 -w 48 -a $allo -e $email
+sbatch doblasts.slurm
+#took about 5 hours with 120 cores
+
+
+#PULL THE TOP HITS FOR EACH BLAST RESULTS FILE AND OUTPUT AS TEXT FILES
+COV="75"
+PCTID="50"
+>getBestHits;for file in *.br; do query=${file/-*_PRO.fas.br/}; db=${file/*-/}; echo "find_best_hits.py -br $file -query $query -db ${db/.br/} -o $query-${db/.br/}.hits -cov $COV -pctID $PCTID" >> getBestHits; done
+launcher_creator.py -n getBestHits -j getBestHits -t 1:00:00 -a $allo -e $email -N 1 -w 48 -q normal
+sbatch getBestHits.slurm
+
+#CONCATENATE THE TOP HITS FILES 
+>all_top_hits.txt; for file in *.hits; do cat $file >> all_top_hits.txt; done
+
+#USE THE TOP HITS TO PULL OUT RECIPROCAL ORTHOLOGS
+echo "get_multireciprocal_orthos2.py -hits all_top_hits.txt -fa *PRO.fas -o reciprocalOrthos_cov75_pctID50.txt -anchor AdigNCBI_PRO.fas -rcut 1.0" > getRecips
+launcher_creator.py -n getRecips -j getRecips -q development -t 1:00:00 -a $allo -e $email
+sbatch getRecips.slurm
+
+##========================================================================================================================
+
+#-----------------------------------------------------------------------------------
+#-------------------- PART 4 ALIGN ORTHOLOGS FOR PHYLOGENY CONSTRUCTION ------------
+#-----------------------------------------------------------------------------------
+#ASSEMBLE ALL THE CDS.fas AND PRO.fas FILES INTO A NEW DIRECTORY WITH THE reciprocal Ortholog table
+
+#GET ORTHOLOG STATS AND OUTPUT REDUCED ORTHOLOGS BASED ON REPRESENTATION
+#note you can repeat this as many times as you want from the same original reciprocalOrthos_cov75_pctID75.txt
+orthologStats.py reciprocalOrthos_cov75_pctID50.txt 0.80
+	Results:
+	Of 33878 total genes...
+	126 had at least 18 representative species and were kept
+	33752 were rejected because they did not have enough species
+
+
+#FIRST OUTPUT FASTA FILES FOR EACH GENE IN THE ORHTOLOG TABLE BY PULLING THE SEQUENCES FROM THEIR PROTEIN FASTA FILES
+echo "output_ortholog_seqs.py -prot *PRO.fas -nucl *CDS.fas -orthos reciprocalOrthos_cov75_pctID50_rep0.8.txt -ignore AdigNCBI" > orthoOuter
+launcher_creator.py -j orthoOuter -n orthoOuter -q normal -N 1 -w 1 -t 2:00:00
+sbatch orthoOuter.slurm
+
+#USE MAFFT TO MAKE MULTIPLE ALIGNMENTS OF THE ORTHOLOG PROTEIN SEQUENCES
+#NOTE THAT THIS DOESN'T RUN WHEN YOU DO IT THROUGH A JOB. I GOT IT TO WORK BY RUNNING ON FRONT NODES.
+for fa in *prot.fasta; do mafft --localpair --maxiterate 1000 $fa > ${fa/.fasta/}.aln; done
+
+#WE NEED TO THESE BE HIGH QUALITY ALIGNMENTS OF REAL ORHTOLOGS. SO THESE ARE WORTH LOOKING AT MANUALLY. 
+>alignments.txt; for file in *.aln; do echo $file >> alignments.txt; echo ${file/.aln/} >> alignments.txt; cat $file >> alignments.txt; done &
+
+
+##USE PAL2NAL TO REVERSE TRANSLATE THE PROTEIN ALIGNMENTS BACK INTO CODONS BASED ON THE CDS FILES
+>doalign; for aln in *.aln; do echo "pal2nal.pl $aln ${aln/prot.aln/}nuc.fasta -output paml -nogap > ${aln/_prot.aln/}.codon">>doalign; done
+
+ls *.codon | wc -l
+		104
+
+#BUILD A SPECIES LIST FOR EASY ACCESS TO THE SPECIES NAMES
+#note this works by calling on the original transcriptome files, so if you have them elsewhere it won't work.
+>speciesList.txt; for i in *CDS.fas; do echo ${i/_CDS.fas/} >> speciesList.txt; done
+
+#CONCATENATE THE CODON SEQUENCES INTO A NEXUS FILE
+concatenate_genes_into_nexus.py -spp speciesList.txt -f *.codon -o seqs.nex
+
+#-----------------------------------------------------------------------------------
+#-------------------- PART 5 USING RAxML TO BUILD TREE ----------------------------
+#-----------------------------------------------------------------------------------
+
+module load raxml
+
+#CONVERT THE NEXUS FILE INTO A PHYLIP FILE
+#(I originally planned to use BEAST, but found raxML better suited to my level)
+nex2phy.py -i seqs.nex
+
+#SET UP SOME VARIABLES FOR RUNNING THE raxML COMMAND
+S="seqs.phy"                              #the sequence file
+Q="seqs_partitions.txt"                   #the sequence partition file (separates the concatenated seqs into genes)
+R="T2"                                    #the run name (this must be different for each run)
+N="1000"                                 #iterations for bootstrapping (10K may be too many if you have a lot of genes, but is nice for 100 - 200 genes)
+
+#RUN raxML USING THE 'RAPID' ALGORITHM
+echo "/work/02260/grovesd/lonestar/raxml/standard-RAxML-master/raxmlHPC-PTHREADS-SSE3 -s $S -n $R -m GTRGAMMA -f a -p 12345 -x 12345 -N $N -T 16 -q $Q -o Apallida,Nvectensis,Aelegantis" > rapid_c80TreeBoot
+launcher_creator.py -n rapid_c80TreeBoot -j rapid_c80TreeBoot -q normal -t 24:00:00 -a tagmap -e $email
+sbatch rapid_c80TreeBoot.slurm
+
+#LOOK AT THE RESULT
+cat RAxML_bipartitions.T2
+
+#gives this tree
+((((Mauretenra:0.04369812079991031162,(Pdamicorni:0.03915802133366429877,(Shystrix:0.02744593510941090511,Spistillat:0.01790074659009108921)100:0.02218592755583704418)100:0.07088064167573229768)100:0.05584496491054431050,((Mcavernosa:0.02203859703472176718,(Pstrigosa:0.04397793748165431532,((Pdaedalea:0.00269225441062231462,Pcarnosus:0.00931728320130854187)100:0.02834494595992615926,Ofaveolata:0.04674775078793853150)100:0.00594717487171878782)100:0.01244445996162795234)100:0.03609206238767673214,Fscutaria:0.07981710243327380661)100:0.02107842241789664034)100:0.04046018770834908240,((Pastreoide:0.00921201868135122434,(Paustralie:0.01153372774848265662,Plobata:0.00349023311543393252)100:0.00679069547971928537)100:0.13150568849337848643,((Atenuis:0.01320200265742962897,((Adigitifer:0.00454567106329206109,(Ahyacinthu:0.00443322345848014103,Amillepora:0.00375392976022668069)97:0.00166679970972024075)100:0.00243952624269544666,(Apalmata:0.00103737134579776655,Acervicorn:0.00166215002491227584)100:0.00402710576962639604)100:0.00834514202239870599)100:0.19407836872594810829,Ssiderea:0.07458369038000967066)99:0.01830221931403016797)100:0.03376331487641712203)100:0.16859806871397622907,((Apallida:0.22303704195987231196,Aelegantis:0.18375068947785327955)100:0.13102385656791970536,Nvectensis:0.32142737372397306439)100:0.16859806871397622907);
+#visualize using Dendroscope
+
+#-------------------------------------------------------------------------------------------------
+#-------------------- PREPARE FILES FOR EACH GENE TO RUN PAML ------------------------------------
+#-------------------------------------------------------------------------------------------------
+
+#BEFORE WE PULLED ORTHOLOGS STRICTLY TO BUILD THE PHYLOGENETIC TREE
+#NOW WE WILL RELAX THE ORTHOLOG STRINGENCY TO GET MORE GENES
+##This gets really messy because you make so many files (there was probably a better way to do this)
+#it's necessary to go back to the blast results files if you want to use new filters (like a lower coverage rate or lower pct identity)
+#assemble all the PRO.fas and .br blast results files into a single directory
+
+#PULL THE TOP HITS FOR EACH BLAST RESULTS FILE AND OUTPUT AS TEXT FILES
+#set the coverage and percent identity you want
+COV="75"
+PCTID="25"
+>getBestHits;for file in *.br; do query=${file/-*_PRO.fas.br/}; db=${file/*-/}; echo "find_best_hits.py -br $file -query $query -db ${db/.br/} -o $query-${db/.br/}.hits -cov $COV -pctID $PCTID" >> getBestHits; done
+launcher_creator.py -n getBestHits -j getBestHits -q normal -t 2:00:00 -a $allo -N 1 -w 48
+sbatch getBestHits.slurm
+
+#CONCATENATE THE TOP HITS FILES 
+>all_top_hits.txt; for file in *.hits; do cat $file >> all_top_hits.txt; done
+
+#USE THE TOP HITS TO PULL OUT RECIPROCAL ORTHOLOGS
+#note here the -rcut argument sets requirement that all sequences within an orthologous group are reciprocal best hits to all others
+echo "get_multireciprocal_orthos2.py -hits all_top_hits.txt -fa *PRO.fas -o reciprocalOrthos_cov75_pctID25.txt -anchor AdigNCBI_PRO.fas -rcut 1.0" > getRecips
+launcher_creator.py -n getRecips -j getRecips -q normal -t 1:00:00 -a $allo -e $email
+sbatch getRecips.slurm
+
+
+#GET ORTHOLOG STATS AND OUTPUT REDUCED ORTHOLOGS BASED ON REPRESENTATION
+orthologStats.py reciprocalOrthos_cov75_pctID25.txt 0.18
+
+
+
+#results for -rcut 1.0: (100% of sequences in orthologous groups must be reciprocal best hits with each other)
+	Of 33878 total genes...
+	4870 had at least 4 representative species and were kept
+	29008 were rejected because they did not have enough species
+
+		#results for -rcut 0.75: (each sequence in an orthologous group must be reciprocal best hits with >=75% of other sequences)
+			Of 33878 total genes...
+			5658 had at least 4 representative species and were kept
+			28220 were rejected because they did not have enough species
+
+					#old results if you used -rcut 0.5 instead of 1.0
+						Of 30528 total genes...
+						9728 had at least 4 representative species and were kept
+						20800 were rejected because they did not have enough species
+
+#Chose -rcut 1.0 for final set.
+
+#-----------------------------------------------------------------------------------------
+#--------- FILTERING ORTHOLOGS BASED ON PAIRWISE COMPARISONS AND FAST ORTHO---------------
+#-----------------------------------------------------------------------------------------
+#run fastOrtho on the same set of protein fastas by following the Walkthrough file 'fastOrtho_TACC_WALKTHROUGH.txt'
+#The final output from this should be an orthologous group file called run1.end
+#Get the concensus between these two sets:
+sed -i.bak 's/.fas//g' reciprocalOrthos_cov75_pctID25_rep0.18.txt
+cross_check_orthos.py -orthos reciprocalOrthos_cov75_pctID25_rep0.18.txt -fOrthos run1.end -o fastOrtho_filtered.tsv > cross_check.log
+
+#note the file cross_check.log keeps information about how the cross checking went
+
+
+#use the ortholog table to output sets of orthologs as single files
+echo "output_ortholog_seqs.py -prot *PRO.fas -nucl *CDS.fas -orthos fastOrtho_filtered.tsv -ignore AdigNCBI" > orthoOuter
+launcher_creator.py -j orthoOuter -n orthoOuter -q normal -w 1 -N 1 -e $email -a $allo -t 1:00:00
+sbatch orthoOuter.slurm
+
+
+#--------------------- Setting up subsets of orthologs for particular taxa ---------------------------
+#This was done in order to run sites tests based only on particular clades
+#Only do this if you have already run FastOrtho and have a set of cross-referenced orthologs
+#make a directory for each subset you want (eg only acroporid sequences)
+mkdir acro_only
+cd acro_only
+
+#make symbolic links to the output sequences
+ln -s *nuc.fasta .
+ln -s *prot.fasta .
+
+#make a list of the taxa you want to subset for
+nano acroporids.txt
+Acervicorn
+Adigitifer
+Ahyacinthu
+Amillepora
+Apalmata
+Atenuis
+
+
+#filter the fasta files
+>subset;for file in *.fasta; do echo "subset_fasta.py $file acroporids.txt > $file.sub" >> subset; done
+launcher_creator.py -n subset -j subset -q normal -t 1:00:00 -a $allo -N 1 -w 48
+sbatch subset.slurm
+
+
+#move them into their own directory and rename them
+mkdir subsetted
+mv *.sub subsetted
+cd subsetted
+rename .fasta.sub .fasta *.fasta.sub
+
+#the above steps could be repeated for any set of taxa
+#(also keep a directory with the ortholog sequences for all taxa)
+
+
+#-------------------------------------------------------------------------------------------------------
+
+
+
+#use MAFFT to align the protein sequences
+#note on lonestar5 the module isn't installed yet, and I had to install it myself from here: http://mafft.cbrc.jp/alignment/software/installation_without_root.html
+>align;for fa in *prot.fasta; do echo "mafft --localpair  --maxiterate 1000 $fa > ${fa/.fasta/}.aln" >> align; done
+launcher_creator.py -n align -j align -t 3:00:00 -q normal -a $allo -N 1 -w 48
+sbatch align.slurm
+
+
+#MAKE SURE YOU HAVE ALL YOUR ALIGNMENTS
+ls *prot.fasta | wc -l
+ls *aln | wc -l
+
+
+##USE PAL2NAL TO REVERSE TRANSLATE TO CODONS
+>reverseTrans; for aln in *.aln; do echo "pal2nal.pl $aln ${aln/prot.aln/}nuc.fasta -output paml -nogap > ${aln/_prot.aln/}.codon" >> reverseTrans; done
+launcher_creator.py -n reverseTrans -j reverseTrans -q normal -t 2:00:00 -a $allo -N 1 -w 48
+sbatch reverseTrans.slurm
+
+
+#MAKE SURE THAT YOU'RE REVERSE TRASLATING ALL THE FILES
+cat reverseTrans | wc -l
+
+
+#MAKE SURE YOU STILL HAVE ALL YOUR FILES
+ls *.codon | wc -l
+
+#GET COUNTS FOR THE NUMBER OF TAXA AND LENGTHS
+>taxon_counts.txt; for file in *.codon; do head -n 1 $file >> taxon_counts.txt; done
+cat taxon_counts.txt | awk 'BEGIN{print "count"}{print $1}' > taxon_counts.tsv
+cat taxon_counts.txt | awk 'BEGIN{print "length"}{print $2}' > lengths.tsv
+
+#NOW WE HAVE CODON FILES TO USE FOR OUR PAML ANALYSES
+
+#-----------------------------------------------------------------------------------------------
+#-------------------- RUN PAML TO GET PAIR-WISE COMPARISONS ------------------------------------
+#-----------------------------------------------------------------------------------------------
+
+#GET YOUR BEST TREE FROM RAxML
+#Here the tree does not need to have node labels or terminal branch labels (see Tree_file_notes.txt)
+#The tree is actually irrelevant here, I just kept it so this would be consistent with the next steps
+cp ../../raxml/RAxML_bipartitions.T2 ./c80TREE.txt
+TREE="c80TREE.txt"
+
+cat $TREE
+	((((Mauretenra:0.04369812079991031162,(Pdamicorni:0.03915802133366429877,(Shystrix:0.02744593510941090511,Spistillat:0.01790074659009108921)100:0.02218592755583704418)100:0.07088064167573229768)100:0.05584496491054431050,((Mcavernosa:0.02203859703472176718,(Pstrigosa:0.04397793748165431532,((Pdaedalea:0.00269225441062231462,Pcarnosus:0.00931728320130854187)100:0.02834494595992615926,Ofaveolata:0.04674775078793853150)100:0.00594717487171878782)100:0.01244445996162795234)100:0.03609206238767673214,Fscutaria:0.07981710243327380661)100:0.02107842241789664034)100:0.04046018770834908240,((Pastreoide:0.00921201868135122434,(Paustralie:0.01153372774848265662,Plobata:0.00349023311543393252)100:0.00679069547971928537)100:0.13150568849337848643,((Atenuis:0.01320200265742962897,((Adigitifer:0.00454567106329206109,(Ahyacinthu:0.00443322345848014103,Amillepora:0.00375392976022668069)97:0.00166679970972024075)100:0.00243952624269544666,(Apalmata:0.00103737134579776655,Acervicorn:0.00166215002491227584)100:0.00402710576962639604)100:0.00834514202239870599)100:0.19407836872594810829,Ssiderea:0.07458369038000967066)99:0.01830221931403016797)100:0.03376331487641712203)100:0.16859806871397622907,((Apallida:0.22303704195987231196,Aelegantis:0.18375068947785327955)100:0.13102385656791970536,Nvectensis:0.32142737372397306439)100:0.16859806871397622907);
+
+#IF YOU DIDN'T GRAB THE SPECIES LIST FROM BEFORE, COPY IT OVER INTO YOUR WORKING DIRECTORY
+
+##BUILD A PAML CONTROL FILE FOR EACH GENE
+>buildControls;for file in *.codon; do echo "build_paml_control.py -i $file -t $TREE -spp speciesList.txt -runMode -2" >> buildControls; done
+launcher_creator.py -n buildControls -j buildControls -w 48 -N 1 -t 1:00:00 -q normal -a $allo
+sbatch buildControls.slurm
+
+
+#MAKE SURE YOU HAVE ALL YOUR CONTROL FILES
+ls *cnt | wc -l
+
+
+#RUN CODEML
+>runCodeml; for file in *.cnt; do echo "codeml $file" >> runCodeml; done
+launcher_creator.py -n runCodeml -j runCodeml -w 48 -q normal -t 10:00:00 -a $allo -q normal -N 1
+sbatch runCodeml.slurm
+
+
+##NOW PARSE THE CODEML OUTPUTS
+>parse; while read line; do echo "parse_codeml_pairwise_outputV2.py -f *.codeml -spp1 $line -sppList speciesList.txt -o pair-wise_dNdS_${line}.txt -orthos reciprocalOrthos_cov75_pctID25_rep0.18.txt" >> parse; done < speciesList.txt
+launcher_creator.py -n parse -j parse -w 24 -N 1 -t 1:00:00 -e $email -a $allo
+sbatch parse.slurm
+
+
+
+
+#----------------------------------------------------------------------------------------------------------
+#--------------------------------- RUN CODEML TO GET OVERALL MEAN OMEGA -----------------------------------
+#----------------------------------------------------------------------------------------------------------
+
+#This should work in the same directory, but just to keep things simpler I like to copy of the .codon files and speciesList to a new directory
+
+#GET YOUR BEST TREE FROM RAxML
+#here I had to do some tree formatting. First I remove all bootstrap values from the newick format
+#because these make the labels for PAML less clear. Then I use Dendroscope to make sure the tree is rooted from the NODE leading 
+#to the actiniarian species (N.vectensis, A.elegantissima, and A. pallida)
+#the script 'build_paml_control.py' should ensure that even when terminal taxa are pruned from the tree it remains unrooted (a trifurcation at base)
+#recommend saving the tree formatted for paml specifcally
+
+#COPY THE TREE OVER AND SAVE AS $TREE
+#MAKE SYMBOLIC LINKS FOR THE .CODON FILES FROM WHEREEVER YOU HAVE THEM
+#eg ln -s ../sequences/*.codon .
+
+##BUILD A PAML CONTROL FILE FOR EACH GENE
+TREE=c80TREE.txt
+>buildControls;for file in *.codon; do echo "build_paml_controlsV2.py -i $file -t $TREE -spp speciesList.txt -runMode 0 -NSsites 0 -model 0 -controlName ${file/.codon/_M0.cnt} -o ${file/.codon/_M0.codeml}" >> buildControls; done
+launcher_creator.py -n buildControls -j buildControls -w 48 -N 1 -t 4:00:00 -a $allo -q normal -e $email
+sbatch buildControls.slurm
+
+
+#MAKE SURE YOU HAVE ALL OF YOUR CONTROL FILES
+ls *cnt | wc -l
+
+
+#RUN CODEML
+>runCodemlM0; for file in *M0.cnt; do echo "codeml $file" >> runCodemlM0; done 
+launcher_creator.py -n runCodemlM0 -j runCodemlM0 -t 8:00:00 -a tagmap -N 1 -w 48 -q normal
+sbatch runCodemlM0.slurm
+
+
+#GATHER THE RESULTS
+>results.txt; for file in *M0.codeml; do dnds=$(grep "omega (dN/dS)" $file); echo -e "${file/_M0.codeml/}\t$dnds" >> results.txt; done
+cat results.txt | awk '{print $1","$5}' > mean_omega.csv
+
+#scp to PC for analysis
+
+
+#----------------------------------------------------------------------------------------------------------------------------
+#--------------------------------- RUN SITES TEST ON ORTHOLOGS WITH ONLY ACROPORA SPECIES -----------------------------------
+#----------------------------------------------------------------------------------------------------------------------------
+#OVERVIEW:
+#Here we are running the a sites test in CODEML (PAML manual)
+#we will restrict the phylogeny to only Acroporids
+#We run the null model M1a that does not allow omega > 1, and the alternative model M2a that does
+#Likelihood ratio tests between the two models may identify genes with sites showing evidence of positive selection
+#Use 2 degrees of freedom for likelihood ratio test (PAML manual/Beginnersguild-dnds.pdf)
+#control file settings for the alternative and null model are shown below:
+#ALTERNATIVE:
+	#model     = 0
+	#NSsites   = 2
+#NULL
+	#model     = 2
+	#NSsites   = 2
+
+
+#BUILD THE PAML CONTROL FILES FOR RUNNING THE NULL MODEL
+>buildControlsNull;for file in *.codon; do echo "build_paml_controlsV2.py -i $file -t $TREE -spp speciesList.txt -runMode 0 -model 0 -NSsites 1 -fix_omega 0 -controlName ${file/.codon/_NULL.cnt} -o ${file/.codon/_NULL.codeml}" >> buildControlsNull; done &
+launcher_creator.py -n buildControlsNull -j buildControlsNull -w 48 -N 1 -a $allo -t 5:00:00 -q normal
+sbatch buildControlsNull.slurm
+
+
+#BUILD THE PAML CONTROL FILES FOR RUNNING THE ALTERNATIVE MODEL
+#note the tree files will overwrite, but that's ok
+>buildControlsALT;for file in $(ls *.codon); do echo "build_paml_controlsV2.py -i $file -t $TREE -spp speciesList.txt -runMode 0 -model 0 -NSsites 2 -fix_omega 0 -controlName ${file/.codon/_ALT.cnt} -o ${file/.codon/_ALT.codeml}" >> buildControlsALT; done &
+launcher_creator.py -n buildControlsALT -j buildControlsALT -w 48 -N 1 -a $allo -t 5:00:00 -q normal
+sbatch buildControlsALT.slurm
+
+
+
+#RUN THE NULL MODEL
+> runNullModel; for file in *NULL.cnt; do echo codeml $file >> runNullModel; done &
+launcher_creator.py -n runNullModel -j runNullModel -q normal -t 12:00:00 -N 1 -w 48 -a $allo
+sbatch runNullModel.slurm
+
+> runAltModel; for file in *ALT.cnt; do echo codeml $file >> runAltModel; done &
+launcher_creator.py -n runAltModel -j runAltModel -q normal -t 12:00:00 -N 1 -w 48 -a $allo
+sbatch runAltModel.slurm
+
+#check they all ran
+ls *NULL.codeml | wc -l
+ls *ALT.codeml | wc -l
+
+#ASSEMBLE LIKELIHOODS FOR NULL MODELS
+>nullResults;for file in *NULL.codeml; do dat=$(grep lnL $file); echo "${file/_NULL.codeml/}   $dat" >> nullResults;  done &
+
+#ASSEMBLE LIKELIHOODS FOR NULL MODELS
+>altResults;for file in *ALT.codeml; do dat=$(grep lnL $file); echo "${file/_ALT.codeml/}   $dat" >> altResults;  done &
+
+
+#MAKE SURE THESE FILES HAVE THE FIGHT NUMBER OF LINES
+cat altResults | wc -l
+cat nullResults | wc -l
+
+#PARSE THE DATA INTO TABLES
+parse_codeml_branch_sites.py -i nullResults -o nullLikelihoods_Sites.txt
+parse_codeml_branch_sites.py -i altResults -o altLikelihoods_Sites.txt
+
+#===============================================================================================
+
+#-----------------------------------------------------------------------------------------------------------------------------------------------
+#--------------------------------- RUN PAML TO TEST FOR EVIDENCE OF LINEAGE/SITE-SPECIFIC SUBSTITUTION RATES -----------------------------------
+#-----------------------------------------------------------------------------------------------------------------------------------------------
+
+#OVERVIEW:
+#Here we are running the "Branch-site test for positive selection" (PAML manual)
+#We run the alternative model A and the Null model A
+#Likelihood ratio tests between the two models may identify genes under positive selection in our specified lineage
+#Use one degree of freedom for likelihood ratio test (PAML manual)
+#control file settings for the alternative and null model are shown below:
+#ALTERNATIVE:
+	#model     = 2
+	#NSsites   = 2
+	#fix_omega = 0
+#NULL
+	#model     = 2
+	#NSsites   = 2
+	#fix_omega = 1
+	#omega     = 1
+
+#each of the two models allows W to vary between sites and between branches.
+#Which branches (lineages) can have their own W values is assigned in the tree file
+
+#I LIKE TO RUN THIS IN ITS OWN DIRECTORY TOO
+#IF YOU'RE USING THE SAME SETS OF GENES YOU CAN JUST COPY THE *.codon FILES OVER FROM THE PAIRED-END ANALYSIS
+
+
+
+#GET YOUR BEST TREE FROM RAxML
+#here I had to do some tree formatting. First I remove all bootstrap values from the newick format
+#because these make the labels for PAML less clear. Then I use Dendroscope to make sure the tree is rooted from the NODE leading 
+#to the actiniarian species (N.vectensis, A.elegantissima, and A. pallida)
+#the script 'build_paml_control.py' should ensure that even when terminal taxa are pruned from the tree it remains unrooted (a trifurcation at base)
+#recommend saving the tree formatted for paml specifcally
+
+
+
+#To build control files that are specific to the Acroporid branch
+#we need to tell the builder script which taxa are from that lineage
+#so make a subset of the species list for just the acroporids
+
+nano acroporids.txt
+
+#paste in the names of the acroporid species
+Acervicorn
+Adigitifer
+Ahyacinthu
+Amillepora
+Apalmata
+Atenuis
+
+
+#IF RUNNING FOR ALL NON ACROPORIDS, MAKE AN ALTERNATE LIST
+nano robust.txt
+Fscutaria
+Mauretenra
+Mcavernosa
+Ofaveolata
+Pcarnosus
+Pdaedalea
+Pdamicorni
+Pstrigosa
+Shystrix
+Spistillat
+
+
+
+#SET APPROPRIATE FILE VARIABLES
+CLADE=robust.txt
+CLADE=acroporids.txt
+TREE=c80TREE.txt
+INCLUSIVE=no
+
+#BUILD THE PAML CONTROL FILES FOR RUNNING THE NULL MODEL
+>buildControlsNull;for file in *.codon; do echo "build_paml_control_positive.py -inc $INCLUSIVE -i $file -t $TREE -spp speciesList.txt -runMode 0 -model 2 -NSsites 2 -fix_omega 1 -omega 1 -controlName ${file/.codon/_NULL.cnt} -clade $CLADE -o ${file/.codon/_NULL.codeml}" >> buildControlsNull; done &
+
+
+#test one to be sure it's working
+head buildControlsNull
+
+#run job
+launcher_creator.py -n buildControlsNull -j buildControlsNull -w 48 -N 1 -e $email -a $allo -t 5:00:00 -q normal
+sbatch buildControlsNull.slurm
+
+
+#MAKE A LOG OF ALL THE TREES FOR MANUAL INSPECTIONS
+print_tree.py -i *.tree > ortholog_trees.txt &
+
+#BUILD THE PAML CONTROL FILES FOR RUNNING THE ALTERNATIVE MODEL
+#note the tree files will overwrite, but that's ok
+>buildControlsALT;for file in *.codon; do echo "build_paml_control_positive.py -inc $INCLUSIVE -i $file -t $TREE -spp speciesList.txt -runMode 0 -model 2 -NSsites 2 -fix_omega 0 -controlName ${file/.codon/_ALT.cnt} -clade $CLADE -o ${file/.codon/_ALT.codeml}" >> buildControlsALT; done &
+launcher_creator.py -n buildControlsALT -j buildControlsALT -w 48 -N 1 -a $allo -t 5:00:00 -q normal
+sbatch buildControlsALT.slurm
+
+#CHECK ALL THE CONTROL FILES WERE MADE
+ls *ALT.cnt | wc -l
+ls *NULL.cnt | wc -l
+#note here that the minimum foreground and background taxa are both set at two by default in build_paml_control_positive.py
+#if these criteria are not met, a control file is still output, but with _FAIL appended to it
+#this way you can keep count of how many failed due to taxon representation
+ls *ALT.cnt_FAIL | wc -l
+#this should return a number of files such that the sum of failed and created files is equal to the number of *.codon files
+
+#RUN THE NULL MODEL
+> runNullModel; for file in *NULL.cnt; do echo codeml $file >> runNullModel; done &
+launcher_creator.py -n runNullModel -j runNullModel -q normal -t 24:00:00 -N 1 -w 48 -a $allo
+sbatch runNullModel.slurm
+
+> runAltModel; for file in *ALT.cnt; do echo codeml $file >> runAltModel; done &
+launcher_creator.py -n runAltModel -j runAltModel -q normal -t 24:00:00 -N 1 -w 48 -a $allo -e $email
+sbatch runAltModel.slurm
+
+
+#ASSEMBLE LIKELIHOODS FOR NULL MODELS
+>nullResults;for file in *NULL.codeml; do dat=$(grep lnL $file); echo "${file/_NULL.codeml/}   $dat" >> nullResults;  done &
+
+#ASSEMBLE LIKELIHOODS FOR NULL MODELS
+>altResults;for file in *ALT.codeml; do dat=$(grep lnL $file); echo "${file/_ALT.codeml/}   $dat" >> altResults;  done &
+
+#PARSE THE DATA INTO TABLES
+parse_codeml_branch_sites.py -i nullResults -o nullLikelihoods_branchSites.txt
+parse_codeml_branch_sites.py -i altResults -o altLikelihoods_branchSites.txt
+
+#ANALYZE THE RESULTS WITH LRT_for_branch_sites_models.R
+
+
+
+
+#FOR INSTRUCTIONS ON PERFORMING DOWNSTREAM ANALYSES SEE FILE: 'Analysis_Instructions.txt'
+
+
+
+##############################################################
+######################### REFERENCES #########################
+##############################################################
+Moya A, Huisman L, Ball EE, Hayward DC, Grasso LC,
+	Chua CM, Woo HN, Gattuso J-P, Forêt S, Miller DJ.
+	2012. Whole transcriptome analysis of the coral 
+	Acropora millepora reveals complex responses to 
+	CO₂-driven acidification during the initiation of
+	calcification. Mol. Ecol. 21:2440–2454.
+
+##############################################################
+##############################################################
+
+
+
+
+
+
+

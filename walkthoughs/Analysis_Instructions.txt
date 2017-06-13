@@ -1,0 +1,290 @@
+#DOWNSTREAM ANALYSES
+#Groves Dixon
+#last updated 2-7-17
+#This file provides instructions on running downstream analysis once the PAML results are in hand
+
+
+
+
+##########################################
+####### HEMOND ET AL. 2014 RESULTS #######
+##########################################
+#annotated gene expression results available as Additional file 2 from publication
+#The transcriptome can be downloaded from here: https://www.ncbi.nlm.nih.gov/nuccore?term=222758%5BBioProject%5D
+
+#get GO terms for the Hemond annotated genes
+uniprot_to_go.py -ids idmapping_selected.tab -i raw_download.csv -uniColumn 3 -o hemond_go0.tsv
+cat hemond_go0.tsv | awk 'BEGIN {FS="\t"; print "V1\tV2"};{print $1"\t"$15}' > hemond_go.tsv
+
+
+#get Acervicornis-Adigitifera blast hits
+blastx -db protein.fa -query AcerHemondClean.fasta -evalue 1e-10 -num_threads 48 -max_target_seqs 1 -outfmt 6 -out acer-adig_blastx_out.tsv
+cat acer-adig_blastx_out.tsv | awk '{if ($3 > 70) print $0}' > acer-adig_blastx_70.tsv
+cat acer-adig_blastx_70.tsv | awk 'BEGIN{OFS="\t"}{split($2, a, "|"); $2=a[4]; print $0}' > acerDigBlastx_final.tsv
+
+
+
+
+
+
+
+
+
+####################################
+####### BRANCH SITES RESULTS #######
+####################################
+#keep all files in directory branch_sites_acro
+#start with the files:
+	nullLikelihoods_branchSites.txt
+	altLikelihoods_branchSites.txt
+
+#use R script LRT_for_branch_sites_models.R to derive p-values
+#This script has the following outputs:
+	branch_sites_LRT_results_acro.txt
+	branch_site_LRT_results_for_GOmwu.csv
+	branch_site_LRT_results_for_Fisher_GOmwu.csv
+
+#analyze the the *GOmwu.csv using GO_MWU.R
+
+####################################
+
+
+
+####################################
+####### BRANCH SITES RESULTS #######
+####################################
+
+
+
+
+
+
+############################################
+###### GET GO TERMS FROM UNIPROT HITS ######
+############################################
+
+#blast the A. digitifera proteins against uniprot
+echo "blastp -db uniprot_sprot.fasta -query protein.fa -evalue 1e-5 -num_threads 48 -max_target_seqs 1 -outfmt 6 -out adig_uniprot_blast_out.tsv" > uniBlast
+launcher_creator.py -n uniBlast -j uniBlast -q normal -t 24:00:00 -a $allo -e $email -N 1 -w 1
+sbatch uniBlast.slurm
+
+#get the GO terms
+get_sp_go_terms.py -ids idmapping_selected.tab -br adig_uniprot_blast_out.tsv -o adig_go_terms.tsv
+#remove white space between GO terms
+sed -i.bak 's/; /;/g' adig_go_terms.tsv
+#get rid of genes that don't have GO terms
+cat adig_go_terms.tsv | awk '{if ($2!="")print}' > adig_uniprot_gos.tsv
+#scp the go term table to Mac to run GOmwu
+
+#############################################################
+######## SUPPLEMENT UNIPROT GOS WITH A.MILLEPORA GOS ########
+#############################################################
+#get blast pairs for Amillepora isogroups and Adigitifera proteins
+makeblastdb -in protein.fa -dbtype prot
+blastx -db protein.fa -query amil_longest_isogroups.fasta -evalue 1e-10 -num_threads 48 -max_target_seqs 1 -outfmt 6 -out amil-adig_blastx_out.tsv
+
+#rearrange the blast results
+cat amil-adig_blastx_out.tsv | awk '{split($2, a, "|");print a[4]"\t"$1}' > adig-amil_ortho_pairs.tsv
+
+
+#merge up the go terms
+merge_go_terms.py adig_uniprot_gos.tsv amil_iso2go.tab adig-amil_ortho_pairs.tsv 
+mv mergedIso2go.tsv adig_go_final.tsv
+
+
+
+################################################################################
+################# OUTPUT AMINO ACID ALIGNMENTS FOR SELECTED GENES ##############
+################################################################################
+#here you need to go back to where you have 
+#the .codon files that you used to run PAML
+
+#for individual protein sequences:
+c=XP_015764275.1.codon
+codon_to_fasta.py $c > $c.fasta
+translate_fasta.py $c.fasta
+
+
+#then scp them to selected directory in repository
+
+
+
+#for a batch of sequences:
+#make a tab delimited table with the contig names in first column
+contigs=geneset.txt
+
+#and output as a job
+>makeAligns;while read line; do echo "codon_to_fasta.py $line.codon > $line.fasta" >> makeAligns; echo "translate_fasta.py $line.fasta" >> makeAligns; done <$contigs
+launcher_creator.py -n makeAligns -j makeAligns -w 1 -t 1:00:00 -a tagmap -N 1
+sbatch makeAligns.slurm
+
+
+#or run on the front nodes
+#save contig list as seqs.tsv
+while read line; do echo "codon_to_fasta.py $line.codon > $line.fasta"; echo "translate_fasta.py $line.fasta"; done <seqs.tsv
+#####################################################################################
+
+
+
+
+###################################################
+################# GETTING KEGG TERMS ##############
+###################################################
+#Kegg ftp costs money, so have to download stuff manually
+#look up the notch pathway page here: http://www.genome.jp/dbget-bin/www_bget?map04330
+#here there is a link for the ortholog table
+#copy all and paste into excel
+#shift the gene column headers over by 3 so they match, then export as a tab delimited file
+#delete the useless header info and add this:
+#notch_path_ortholog_table; copied from here: http://www.kegg.jp/kegg-bin/view_ortholog_table?against=eukaryotes&map=04330&mode=complete	
+#use parse_notch_kegg_ortho_table.py to build a usable table
+parse_kegg_ortho_table.py notch_path_orthos.txt 
+
+#produces formatted_notch_orthos.tsv
+
+#also do it for wnt
+#wnt_path_ortholog_table; copied from here: http://www.kegg.jp/kegg-bin/view_ortholog_table?against=eukaryotes&map=04310&mode=complete	
+parse_kegg_ortho_table.py wnt_path_orthos.txt formatted_wnt_orthos.tsv
+
+
+
+
+
+
+##########################
+####### REFERENCES #######
+##########################
+Hemond, E. M., S. T. Kaluziak, and S. V Vollmer. 2014. The genetics of colony form and function in Caribbean Acropora corals. BMC Genomics 15:1133.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#DOWNSTREAM ANALYSES ARE PERFORMED WITH R scripts MBD-seq_analysis1-6
+#THESE WILL INCLUDE DATA OUTPUT FROM THE MBD-SEQ DATA PROCESSSING (walkthrough for this is called MBD-seq_Data_Processsing_Walkthrough.txt)
+
+#GO ENRICHMENT FOR MBD-SCORES
+#export the input data using MBD-seq_analysis1_distribution.R
+#use GO_MWU_MBD-seq_enrichment.R to generate figures
+
+#KOGG ENRICHMENT FOR MBD-SCORES
+#export the input data using MBD-seq_analysis1_distribution.R
+#use kog_MWU_for_MBD_enrichment.R to generate enrichment data and heatmap figure
+
+#to output PAML results for a given kogs use 'output_kog.R'
+#to output sets of GO terms use 
+
+
+
+################################################################################
+############################## PARALOG COUNT TEST ##############################
+################################################################################
+#to look at effect of orthologous group size and number of A. millepora paralogs
+#on the p values from branch sites test do this:
+paralog_counts.py -go amil_defog_iso2go.tab -ortho run1.end -seq2iso amil_seq2iso.tab
+#analyze output with paralog_count_test.R
+################################################################################
+
+
+
+
+################################################################################
+################# OUTPUT AMINO ACID ALIGNMENTS FOR SELECTED GENES ##############
+#here you need to go back to where you have 
+#the .codon files that you used to run PAML
+
+#for individual protein sequences:
+c=c018019.codon
+codon_to_fasta.py $c > $c.fasta
+translate_fasta.py $c.fasta
+
+
+#for a batch of sequences:
+#make a tab delimited table with the contig names in first column
+contigs=geneset.txt
+
+#and output as a job
+>makeAligns;while read line; do echo "codon_to_fasta.py $line.codon > $line.fasta" >> makeAligns; echo "translate_fasta.py $line.fasta" >> makeAligns; done <$contigs
+launcher_creator.py -n makeAligns -j makeAligns -w 1 -t 1:00:00 -a tagmap -N 1
+sbatch makeAligns.slurm
+
+
+#or run on the front nodes
+#save contig list as seqs.tsv
+while read line; do echo "codon_to_fasta.py $line.codon > $line.fasta"; echo "translate_fasta.py $line.fasta"; done <seqs.tsv
+#####################################################################################
+
+
+
+#to output sets of kogs use 'output_kog.R'
+#to output sets of for GO terms use 'GO_MWU_Branch_sites.R' in the Acropora directory
+
+
+##################################################################
+############# Incorperating Moya et al. (2012) Data ##############
+##################################################################
+#DOWNLOAD READ COUNTS FROM GENE EXPRESSION OMNIBUS (accession GSE33016)
+#under Samples (9): click each sample link, then download from the ftp link for read counts
+#I downloaded these straight to my personal computer
+curl "ftp://ftp.ncbi.nlm.nih.gov/geo/samples/GSM818nnn/GSM818457/suppl/GSM818457_mRNA_01.counts.txt.gz" > cnt-1_counts.tsv.gz
+curl "ftp://ftp.ncbi.nlm.nih.gov/geo/samples/GSM818nnn/GSM818458/suppl/GSM818458_mRNA_02.counts.txt.gz" > cnt-2_counts.tsv.gz
+curl "ftp://ftp.ncbi.nlm.nih.gov/geo/samples/GSM818nnn/GSM818459/suppl/GSM818459_mRNA_03.counts.txt.gz" > cnt-3_counts.tsv.gz
+curl "ftp://ftp.ncbi.nlm.nih.gov/geo/samples/GSM818nnn/GSM818460/suppl/GSM818460_mRNA_04.counts.txt.gz" > ppm750-1_counts.tsv.gz
+curl "ftp://ftp.ncbi.nlm.nih.gov/geo/samples/GSM818nnn/GSM818461/suppl/GSM818461_mRNA_05.counts.txt.gz" > ppm750-2_counts.tsv.gz
+curl "ftp://ftp.ncbi.nlm.nih.gov/geo/samples/GSM818nnn/GSM818462/suppl/GSM818462_mRNA_06.counts.txt.gz" > ppm750-3_counts.tsv.gz
+curl "ftp://ftp.ncbi.nlm.nih.gov/geo/samples/GSM818nnn/GSM818463/suppl/GSM818463_mRNA_07.counts.txt.gz" > ppm1000-1_counts.tsv.gz
+curl "ftp://ftp.ncbi.nlm.nih.gov/geo/samples/GSM818nnn/GSM818464/suppl/GSM818464_mRNA_08.counts.txt.gz" > ppm1000-2_counts.tsv.gz
+curl "ftp://ftp.ncbi.nlm.nih.gov/geo/samples/GSM818nnn/GSM818465/suppl/GSM818465_mRNA_09.counts.txt.gz" > ppm1000-3_counts.tsv.gz
+gunzip *.gz
+
+#check the number of rows in each
+for file in $(ls *.tsv); do count=$(cat $file | wc -l); echo -e "$file\t$count"; done
+
+#switch over to 'cNNNNNN' rather than 'ClusterNNNNNN'
+for file in $(ls *.tsv); do sed -i.bak 's/Cluster/c/' $file; done
+
+#analyze with DESeq_Moya_2012.R to get 
+
+
+
+#############################################################################################
+############ FIND OUT IF A CONTIG IS DIFFERENTIALLY EXPRESSED IN HEMOND AND MOYA ############
+#############################################################################################
+#for moya open DESeq_for_Moya_2012
+#load the last saved R image and then go to bottom and use seq2iso to grab the expression data
+
+
+#use scripts fisherTest_Hemond.R and DESeq_for_Moya_2012.R to output datasets,
+#then use get_diff_expression_from_pubs.R to pull results for all contigs.
+#final branch-sites results table with diff expression included:
+branch_sites_acro_res_with_diff_express.tsv
+
+
+#############################################################
+############ COMPARE KOG RESULTS ACROSS DATASETS ############
+#############################################################
