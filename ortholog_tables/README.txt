@@ -1,0 +1,5 @@
+#Ortholog tables:
+fastOrtho_filtered.tsv                     -- The orthologous groups after taking concensus between reciprocalOrthos_cov75_pctID25_rep0.18.txt and FastOrtho_orthologous_groups.txt. This is the set used to build alignments for PAML tests.
+codon_alignment_stats.txt                  -- File with the ortholog codon alignment sequence counts (number of taxa) and lengths
+FastOrtho_orthologous_groups.txt           -- The orthologous groups output by Fastortho. (See fastOrtho_TACC_WALKTHROUGH.txt)
+reciprocalOrthos_cov75_pctID25_rep0.18.txt -- The orthologous groups based only on reciprocal best blastp hits. Cov75 indicates coverage 75% between blast query and subject required, pctID25 indicates pct_identity cutoff of 25%, rep0.18 indicates a minimum of 18% of taxa (4 taxa) were required to build an orthologous group.
