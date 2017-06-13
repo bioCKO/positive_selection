@@ -1,0 +1,219 @@
+      4    360
+
+Acervicorn                      ACG TCC ATG ATG TCT TTT TTG ACA GCG AGG CAG CGC ATG AAA AAT CGG GTT CCA CCT AGT CCA GAA GAT TAT GGA GAA AAA AAT AAA GGA AAA CCA ATT CCT ACA TGT GAA GAT GTG GAC AGA GTT CGA AGA GCA CAT CAA AAT GAC CTG GAA AAT ATC CCG ATT TTT CTA CTC ATT GCC CTT TTG TAC ACG CTT CTA AAC CTC TCA CCA GTG AGA GGA ATT TGG TGC TTG CGT ATT TTC ACA GCG GCA AGA TTC CTT CAC ACC ATT GCA TAT CTC AAC AGT GTC AGC AAG CCA AGA GGC GCT GGT TTT GTA GTT GGC ACA ATG TGT CTT ATA ATT ATG GGT GTC AGT GTT CTG CAT GCA 
+Adigitifer                      ACG TCC ATG ATG TCT TTT TTG ACA GCG AGG CAG CGC ATA AAA AAT CGG GTT CTT CCT AGT CCA GAA GAT TAT GGA GAA AAA AAT AAA GGG AAA CCA ATT CCT TCA TGT GAA GAT GTG GAC AGA GTT CGA AGA GCA CAT CAA AAT GAC CTG GAA AAT ATC CCG ATT TTT CTA CTC ATT GCC CTT TTG TAC ACG CTT CTG AAC CTC TCA CCA GTG AGA GGA ATT TGG TGC TTG CGT ATT TTC ACA GCT GCA AGA TTC CTT CAC AGC ATT GCA TAC CTC AAC AGT GTC AGC AAA CCA CGA GGC CTT GGT TTT GGA ATT GGT TCA GTT TGC CTT GTT ATT TTG GGA GTC AGT GTT ATG TAC TCA 
+Nvectensis                      ATT TTG CTG GTT ATT TTC GCA ATT GCT TTT CAT CGC CTT AAA AAC CAG GTT TTC CCT AGC CCC GAG GAC TAT AAG AAG GAT CCT AAA GGC CAA GAA ATC AAG ACT CAT CCT GAT GTG GAG CGA GCA CGA AGA GTT CAT GCC AAT GAT CTA GAG AAC ATC ATT CCT TTT ATT CTG ATT GGC ATC CTG TAC ATT CTG ACT GGC CCT TCT GCC CAG ACT GCT CTT ATT GTA TTC CGC GTC TTC ACA GTG GCT CGT CTG CTC CAC ACA TTG ACA TAC TTC CTA GGG GTG TCA ATC ATT CGT GGA CCA TCC TTT TTA GCT GGT GTA TTG TGC ATT GGG TTT ATG ATT GTT AAT GTA ATC ATG GCC 
+Paustralie                      ATG TTG TCC ATG TCT TTG ATC ACC GCT TTT TAT CGC ATC AAG AAC AAG GCA CTT CCA AGC CCA GAA GAT TAT GGG GAA AAG AAA AGA GAT GAA CCT GTA CCA ATA AAT GAT GAC GTG GAG AGA GTT CGA AGA GCT CAT CGT AAT GAT CTG GAA AAC ATC CCA ACA TTT CTG ATC ATT GCC TTA CTC TTC ATG TTG GCT GGC CTG TGT CCA ACC AGG GGC ATC TGG TGT CTG CGA ATC TTT ACA GCG GGA AGG ATC GTT CAC ACT TTG TCA TAC CTC AGT GCA CTC TCC AAG CCA AGA GCT GCG GGC TTT CTT ATT GGT TTT GTT TGT ACC ATT GTT CTG GGA GTT AGC GTG CTG CTC TCT 
+
+
+
+Printing out site pattern counts
+
+
+         4        348  P
+
+Acervicorn                      AAA AAA AAA AAA AAC AAC AAG AAT AAT AAT ACA ACA ACA ACA ACC ACG AGA AGA AGA AGA AGA AGC AGG AGT AGT AGT ATA ATC ATG ATG ATG ATG ATG ATT ATT ATT ATT ATT ATT ATT CAA CAC CAG CAT CAT CCA CCA CCA CCA CCA CCG CCT CCT CGA CGC CGG CGT CTA CTA CTC CTC CTC CTG CTG CTT CTT CTT CTT GAA GAA GAA GAC GAC GAT GAT GCA GCA GCA GCA GCC GCG GCG GCT GGA GGA GGA GGC GGC GGT GGT GTA GTC GTC GTG GTG GTT GTT GTT GTT TAC TAT TAT TCA TCC TCT TGC TGG TGT TGT TTC TTC TTG TTG TTG TTT TTT 
+Adigitifer                      ... ... ... ... ... ... ..A ... ... ... ... ... T.. T.. .G. ... ... ... ... ... C.. ... ... ... ... ... G.T ... ..A ... ... G.T T.. ... ... ... ... ... ... ... ... ... ... ... T.C ... ... ... ... .TT ... ... ... ... ... ... ... ... ..G ... ... ... A.. ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... T.. ... ... ..T CT. ... ... ..G ... ..T ..A ... .G. ... ... ... ... A.. ... ... ... ... ..C ... ... ... ... ... ... ..C ... ... ... ... ... ... ... ... 
+Nvectensis                      ... ... C.. G.T CTA GG. .TC ..C ... CC. ... .TT ..T GT. ..A .TT .CT ... C.. C.T C.T TCA TTT .A. ..C G.G GGG ... C.T C.. G.T T.. ... ..C ... CC. C.. G.C T.G T.. GCC ... ..T ... ATG ATT ..C GA. G.C TTC ATT AAG ... ... ... .A. ..C A.T ACT .CT ..G T.. A.C ..A A.C A.. ..C ..G A.G CCT ..G ..G ..T ..C ... A.. ..T .TT ..C .G. ..T .T. C.A AAG .CT ..C ..A ..T AT. TCC T.. ..G ..T CA. ... .C. .CA ..A ... ... ..C ... ..T .TG AT. GTA ATT ..C CA. C.G ... C.. GCA ..C ..C ... 
+Paustralie                      ..G .G. G.. ..G .GT GG. ... ..C ... ..A ... ..C .T. TTT ..T .T. ..G ... ... ..G ... TC. TTT ..C ..C GCA ..T ... ..C TCC ... G.T C.. G.A ... .CA ..C ..C T.G G.. .GT ... T.T ... .TC ... ... ..T ... .TT ..A ..A ..A ... ... AA. ..A ..G GCT ..G A.. ... ... ... T.A ACC G.. T.G ... ..T ... ..G ..T ... ..C T.. .G. ..T T.T ... ..T ... ..G ..G ..C .AT .CT ..T ..A ..C C.T C.. ..T ACC ... A.. ... ..G .CA .T. ..C ... .GT .TG ... ..T ... ... AA. A.. ..T C.C A.C C.. ..G ... 
+
+    1    1    1    1    1    1    1    2    1    1    1    1    1    1    1
+    2    1    1    1    1    1    1    1    1    1    1    1    1    1    1
+    1    1    1    1    1    1    1    1    1    1    1    1    1    1    1
+    1    1    1    1    1    1    1    1    1    1    1    1    1    1    1
+    1    1    1    1    1    1    1    1    1    1    2    1    1    1    1
+    1    1    1    1    1    1    1    1    1    1    1    1    1    1    1
+    1    1    1    1    1    1    1    1    1    1    1    1    1    1    1
+    1    1    1    1    1    1    1    1    1    1    2
+
+CODONML (in paml version 4.8a, July 2014)  XP_015757376.1.codon
+Model: several dN/dS ratios for branches for branches, 
+Codon frequency model: F3x4
+Site-class models:  PositiveSelection
+ns =   4  ls = 120
+
+Codon usage in sequences
+------------------------------------------------------------------------------------------------------
+Phe TTT   3   3   4   5 | Ser TCT   1   1   1   2 | Tyr TAT   2   1   1   2 | Cys TGT   2   1   0   3
+    TTC   2   2   5   1 |     TCC   1   1   1   2 |     TAC   1   3   2   1 |     TGC   1   2   1   0
+Leu TTA   0   0   1   1 |     TCA   1   4   1   1 | *** TAA   0   0   0   0 | *** TGA   0   0   0   0
+    TTG   3   4   3   4 |     TCG   0   0   0   0 |     TAG   0   0   0   0 | Trp TGG   1   1   0   1
+------------------------------------------------------------------------------------------------------
+Leu CTT   4   6   2   2 | Pro CCT   2   2   5   1 | His CAT   2   1   3   1 | Arg CGT   1   1   2   1
+    CTC   3   3   1   4 |     CCC   0   0   1   0 |     CAC   1   1   1   1 |     CGC   1   1   2   1
+    CTA   2   1   2   0 |     CCA   5   4   1   6 | Gln CAA   1   1   1   0 |     CGA   1   2   2   2
+    CTG   2   2   5   6 |     CCG   1   1   0   0 |     CAG   1   1   2   0 |     CGG   1   1   0   0
+------------------------------------------------------------------------------------------------------
+Ile ATT   7   8  11   3 | Thr ACT   0   0   3   1 | Asn AAT   4   4   2   2 | Ser AGT   3   3   0   1
+    ATC   1   1   5   7 |     ACC   1   0   0   3 |     AAC   2   2   2   2 |     AGC   1   2   1   2
+    ATA   1   1   0   1 |     ACA   4   2   3   2 | Lys AAA   4   5   2   1 | Arg AGA   5   4   1   4
+Met ATG   5   3   2   3 |     ACG   2   2   0   0 |     AAG   1   0   3   4 |     AGG   1   1   0   2
+------------------------------------------------------------------------------------------------------
+Val GTT   4   5   4   5 | Ala GCT   1   1   4   4 | Asp GAT   2   2   3   4 | Gly GGT   2   2   1   1
+    GTC   2   2   1   0 |     GCC   1   1   3   1 |     GAC   2   2   1   1 |     GGC   2   1   3   3
+    GTA   1   0   3   1 |     GCA   4   3   2   2 | Glu GAA   4   4   1   4 |     GGA   3   4   1   2
+    GTG   2   2   3   2 |     GCG   2   1   0   2 |     GAG   0   0   3   1 |     GGG   0   1   2   1
+------------------------------------------------------------------------------------------------------
+
+Codon position x base (3x4) table for each sequence.
+
+#1: Acervicorn     
+position  1:    T:0.15000    C:0.23333    A:0.35000    G:0.26667
+position  2:    T:0.35000    C:0.21667    A:0.22500    G:0.20833
+position  3:    T:0.33333    C:0.18333    A:0.30000    G:0.18333
+Average         T:0.27778    C:0.21111    A:0.29167    G:0.21944
+
+#2: Adigitifer     
+position  1:    T:0.19167    C:0.23333    A:0.31667    G:0.25833
+position  2:    T:0.35833    C:0.19167    A:0.22500    G:0.22500
+position  3:    T:0.34167    C:0.20000    A:0.29167    G:0.16667
+Average         T:0.29722    C:0.20833    A:0.27778    G:0.21667
+
+#3: Nvectensis     
+position  1:    T:0.16667    C:0.25000    A:0.29167    G:0.29167
+position  2:    T:0.43333    C:0.20833    A:0.22500    G:0.13333
+position  3:    T:0.38333    C:0.25000    A:0.17500    G:0.19167
+Average         T:0.32778    C:0.23611    A:0.23056    G:0.20556
+
+#4: Paustralie     
+position  1:    T:0.19167    C:0.20833    A:0.31667    G:0.28333
+position  2:    T:0.37500    C:0.22500    A:0.20000    G:0.20000
+position  3:    T:0.31667    C:0.24167    A:0.22500    G:0.21667
+Average         T:0.29444    C:0.22500    A:0.24722    G:0.23333
+
+Sums of codon usage counts
+------------------------------------------------------------------------------
+Phe F TTT      15 | Ser S TCT       5 | Tyr Y TAT       6 | Cys C TGT       6
+      TTC      10 |       TCC       5 |       TAC       7 |       TGC       4
+Leu L TTA       2 |       TCA       7 | *** * TAA       0 | *** * TGA       0
+      TTG      14 |       TCG       0 |       TAG       0 | Trp W TGG       3
+------------------------------------------------------------------------------
+Leu L CTT      14 | Pro P CCT      10 | His H CAT       7 | Arg R CGT       5
+      CTC      11 |       CCC       1 |       CAC       4 |       CGC       5
+      CTA       5 |       CCA      16 | Gln Q CAA       3 |       CGA       7
+      CTG      15 |       CCG       2 |       CAG       4 |       CGG       2
+------------------------------------------------------------------------------
+Ile I ATT      29 | Thr T ACT       4 | Asn N AAT      12 | Ser S AGT       7
+      ATC      14 |       ACC       4 |       AAC       8 |       AGC       6
+      ATA       3 |       ACA      11 | Lys K AAA      12 | Arg R AGA      14
+Met M ATG      13 |       ACG       4 |       AAG       8 |       AGG       4
+------------------------------------------------------------------------------
+Val V GTT      18 | Ala A GCT      10 | Asp D GAT      11 | Gly G GGT       6
+      GTC       5 |       GCC       6 |       GAC       6 |       GGC       9
+      GTA       5 |       GCA      11 | Glu E GAA      13 |       GGA      10
+      GTG       9 |       GCG       5 |       GAG       4 |       GGG       4
+------------------------------------------------------------------------------
+
+
+Codon position x base (3x4) table, overall
+
+position  1:    T:0.17500    C:0.23125    A:0.31875    G:0.27500
+position  2:    T:0.37917    C:0.21042    A:0.21875    G:0.19167
+position  3:    T:0.34375    C:0.21875    A:0.24792    G:0.18958
+Average         T:0.29931    C:0.22014    A:0.26181    G:0.21875
+
+Codon frequencies under model, for use in evolver (TTT TTC TTA TTG ... GGG):
+  0.02339562  0.01488812  0.01687321  0.01290304
+  0.01298329  0.00826209  0.00936370  0.00716048
+  0.01349747  0.00858930  0.00000000  0.00000000
+  0.01182636  0.00752586  0.00000000  0.00652242
+  0.03091564  0.01967359  0.02229674  0.01705045
+  0.01715648  0.01091776  0.01237346  0.00946206
+  0.01783595  0.01135015  0.01286350  0.00983680
+  0.01562769  0.00994489  0.01127088  0.00861891
+  0.04261346  0.02711765  0.03073334  0.02350197
+  0.02364813  0.01504881  0.01705532  0.01304230
+  0.02458469  0.01564480  0.01773077  0.01355883
+  0.02154087  0.01370783  0.01553554  0.01188012
+  0.03676455  0.02339562  0.02651504  0.02027621
+  0.02040231  0.01298329  0.01471439  0.01125218
+  0.02121032  0.01349747  0.01529714  0.01169781
+  0.01858428  0.01182636  0.01340321  0.01024951
+
+
+
+Nei & Gojobori 1986. dN/dS (dN, dS)
+(Note: This matrix is not used in later ML. analysis.
+Use runmode = -2 for ML pairwise comparison.)
+
+Acervicorn          
+Adigitifer           0.3753 (0.0592 0.1578)
+Nvectensis           0.3314 (0.5621 1.6963) 0.3693 (0.5850 1.5841)
+Paustralie           0.2217 (0.3096 1.3965) 0.2401 (0.3147 1.3107) 0.3605 (0.5617 1.5582)
+
+
+TREE #  1:  (3, 4, (2, 1));   MP score: 190
+check convergence..
+lnL(ntime:  5  np: 10):  -1329.014584      +0.000000
+   5..3     5..4     5..6     6..2     6..1  
+ 3.308682 1.253547 0.797704 0.147953 0.124794 1.617302 0.722923 0.179166 0.129472 11.540264
+
+Note: Branch length is defined as number of nucleotide substitutions per codon (not per neucleotide site).
+
+tree length =   5.63268
+
+(3: 3.30868, 4: 1.25355, (2: 0.147953, 1: 0.124794): 0.797704);
+
+(Nvectensis: 3.30868, Paustralie: 1.25355, (Adigitifer: 0.147953, Acervicorn: 0.124794): 0.797704);
+
+Detailed output identifying parameters
+
+kappa (ts/tv) =  1.61730
+
+
+dN/dS (w) for site classes (K=4)
+
+site class             0        1       2a       2b
+proportion       0.72292  0.17917  0.07846  0.01945
+background w     0.12947  1.00000  0.12947  1.00000
+foreground w     0.12947  1.00000 11.54026 11.54026
+
+
+Naive Empirical Bayes (NEB) analysis (please use the BEB results.)
+Positive sites for foreground lineages Prob(w>1):
+
+     2 S 0.656
+    10 R 0.927
+    66 L 0.547
+    67 N 0.853
+    89 I 0.707
+    96 S 0.943
+
+Bayes Empirical Bayes (BEB) analysis (Yang, Wong & Nielsen 2005. Mol. Biol. Evol. 22:1107-1118)
+Positive sites for foreground lineages Prob(w>1):
+     2 S 0.631
+    10 R 0.875
+    36 C 0.539
+    66 L 0.548
+    67 N 0.826
+    89 I 0.681
+    96 S 0.911
+
+
+The grid (see ternary graph for p0-p1)
+
+w0:   0.050  0.150  0.250  0.350  0.450  0.550  0.650  0.750  0.850  0.950
+w2:   1.500  2.500  3.500  4.500  5.500  6.500  7.500  8.500  9.500 10.500
+
+
+Posterior on the grid
+
+w0:   0.001  0.999  0.000  0.000  0.000  0.000  0.000  0.000  0.000  0.000
+w2:   0.013  0.030  0.056  0.084  0.108  0.127  0.139  0.146  0.149  0.150
+
+Posterior for p0-p1 (see the ternary graph)
+
+ 0.000
+ 0.000 0.000 0.000
+ 0.000 0.000 0.000 0.000 0.000
+ 0.000 0.000 0.000 0.000 0.000 0.000 0.000
+ 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000
+ 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000
+ 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.001 0.001 0.005
+ 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.002 0.005 0.052 0.046 0.046
+ 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.003 0.008 0.042 0.134 0.291 0.190 0.026
+ 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.002 0.001 0.015 0.009 0.089 0.015 0.018 0.000
+
+sum of density on p0-p1 =   1.000000
+
+Time used:  0:11
