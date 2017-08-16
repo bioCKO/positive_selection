@@ -2,8 +2,9 @@
 ##find_best_hits.py
 ##written 7/21/15 by Groves Dixon
 ProgramName = 'find_best_hits.py'
-LastUpdated = '7/21/15'
-#Added feature to skip sequences with repeated sequence IDs
+LastUpdated = '8/16/17'
+#Added feature to skip sequences with repeated sequence IDs (7/21/15)
+#
 By = 'Groves Dixon'
 VersionNumber = '1.0'
 print "\nRunning Program {}...".format(ProgramName)
@@ -81,13 +82,21 @@ def find_top_hits(BR, queryList):
     resultsList = []
     #now read through the blast results to get the best hits
     result_handle = open(BR) ##open the blast results file
+    print("\nReading blast results file called {}...\n".format(BR))
+    recordCount = 0
     for blast_record in NCBIXML.parse(result_handle): ##start iterating through the blast records using the parser
+        if debug == "TRUE":
+            print("\nStarting record number {}".format(recordCount))
+        recordCount += 1
         entry = blast_record.query
         entry = entry.split()[0]
         #set up the list of data for this particular sequence, including the query fasta, the database, and the sequence ID
         recordResults = [QueryFasta, DatabaseFasta, entry]
         try:
             topHit = blast_record.alignments[0]
+            print("---------")
+            print(topHit)
+            print("-----")
             hitName = topHit.title
             # print "entry {}     hitTitle {}".format(entry, hitName)
             hitName = hitName.split()[1].split()[0]
@@ -121,6 +130,8 @@ def find_top_hits(BR, queryList):
             if debug == "TRUE":
                 print hitName
         except IndexError:
+            if debug == "TRUE":
+                print("Did not find a hit for this record")
             topHit = 'no hit'
             hitName = 'no_hit'
         # add the top hit name as the final piece of information for this blast record
